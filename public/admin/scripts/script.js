@@ -19,12 +19,22 @@ const activeUsersResponse = await fetch('/api/admin/active-users', {
 const totalUsersData = await totalUsersResponse.json();
 const activeUsersData = await activeUsersResponse.json();
 
-document.getElementById('totalUsers').textContent = totalUsersData.data || 'Error';
-document.getElementById('activeUsers').textContent = activeUsersData.data || 'Error';
+// Check if response is successful and has data
+if (totalUsersData.status === 'success') {
+  document.getElementById('totalUsers').textContent = totalUsersData.data || '0';
+} else {
+  document.getElementById('totalUsers').textContent = '0';
+}
+
+if (activeUsersData.status === 'success') {
+  document.getElementById('activeUsers').textContent = activeUsersData.data || '0';
+} else {
+  document.getElementById('activeUsers').textContent = '0';
+}
 } catch (error) {
 console.error('Error fetching user stats:', error);
-document.getElementById('totalUsers').textContent = 'Error';
-document.getElementById('activeUsers').textContent = 'Error';
+document.getElementById('totalUsers').textContent = '0';
+document.getElementById('activeUsers').textContent = '0';
 }
 }
 async function fetchTotalRevenue() {
@@ -42,8 +52,11 @@ const response = await fetch('/api/admin/total-revenue', {
 
 const revenueData = await response.json();
 
-document.getElementById('totalRevenue').textContent =
-  revenueData.data ? `$${revenueData.data}` : 'Error';
+if (revenueData.success && revenueData.data) {
+  document.getElementById('totalRevenue').textContent = `$${revenueData.data}`;
+} else {
+  document.getElementById('totalRevenue').textContent = '$0.00';
+}
 } catch (error) {
 console.error('Error fetching total revenue:', error);
 document.getElementById('totalRevenue').textContent = 'Error';
@@ -217,129 +230,174 @@ console.error('Error fetching recent orders:', error);
 
 // Show order details in modal
 function showOrderDetails(order) {
-const modal = document.getElementById('orderModal');
-const orderDetails = document.getElementById('orderDetails');
-
-const totalAmount = order.items.reduce(
-(sum, item) => sum + parseFloat(item.price) * item.quantity,
-0
-);
-
-orderDetails.innerHTML = `
-<div class="grid grid-cols-2 gap-4 mb-4">
-  <div>
-    <h3 class="font-semibold text-sm mb-2">Order Information</h3>
-    <p class="text-xs mb-1.5">
-      <span class="text-gray-500 dark:text-gray-400">Order ID:</span> 
-      <span 
-        class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-        onclick="copyToClipboard('${order._id}')"
-        title="Click to copy"
-      >
-        #${order._id.substring(0, 6)}...
-      </span>
-    </p>
-    <p class="text-xs mb-1.5">
-      <span class="text-gray-500 dark:text-gray-400">Date:</span> 
-      <span 
-        class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-        onclick="copyToClipboard('${new Date(order.createdAt).toLocaleString()}')"
-        title="Click to copy"
-      >
-        ${new Date(order.createdAt).toLocaleString()}
-      </span>
-    </p>
-    <div class="text-xs mb-1.5 flex items-center gap-2">
-      <span class="text-gray-500 dark:text-gray-400">Status:</span> 
-      <select 
-        id="orderStatusSelect" 
-        class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 cursor-pointer"
-        onchange="updateOrderStatus('${order._id}', this.value)"
-        data-order-id="${order._id}"
-      >
-        <option value="pending" ${order.order_status === 'pending' ? 'selected' : ''}>Pending</option>
-        <option value="success" ${order.order_status === 'success' ? 'selected' : ''}>Completed</option>
-        <option value="cancelled" ${order.order_status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-      </select>
-      <span id="statusUpdateSpinner" class="hidden">
-        <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </span>
-    </div>
-  </div>
-  <div>
-    <h3 class="font-semibold text-sm mb-2">Customer Information</h3>
-    <p class="text-xs mb-1.5">
-      <span class="text-gray-500 dark:text-gray-400">Name:</span> 
-      <span 
-        class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-        onclick="copyToClipboard('${order.delivery_address[0]?.firstName} ${order.delivery_address[0]?.lastName}')"
-        title="Click to copy"
-      >
-        ${order.delivery_address[0]?.firstName} ${order.delivery_address[0]?.lastName}
-      </span>
-    </p>
-    <p class="text-xs mb-1.5">
-      <span class="text-gray-500 dark:text-gray-400">Phone:</span> 
-      <span 
-        class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-        onclick="copyToClipboard('${order.delivery_address[0]?.phoneNumber || 'N/A'}')"
-        title="Click to copy"
-      >
-        ${order.delivery_address[0]?.phoneNumber || 'N/A'}
-      </span>
-    </p>
-    <p class="text-xs mb-1.5">
-      <span class="text-gray-500 dark:text-gray-400">Address:</span> 
-      <span 
-        class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-        onclick="copyToClipboard('${order.delivery_address[0]?.address}, ${order.delivery_address[0]?.city}')"
-        title="Click to copy"
-      >
-        ${order.delivery_address[0]?.address}, ${order.delivery_address[0]?.city}
-      </span>
-    </p>
-  </div>
-</div>
-
-<div class="mt-4">
-  <h3 class="font-semibold text-sm mb-2">Order Items</h3>
-  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-    ${order.items.map(item => {
-      // Get the title from either product_name or title
-      const itemTitle = item.product_name || item.title;
-      
-      return `
-        <div class="flex justify-between items-center py-1.5 border-b dark:border-gray-600 last:border-0">
-          <div class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-               onclick="copyToClipboard('${itemTitle} - Size: ${item.size || 'N/A'} - Color: ${item.color || 'N/A'} - Quantity: ${item.quantity} - Price: $${(item.price * item.quantity).toFixed(2)}')"
-               title="Click to copy item details">
-            <p class="text-xs font-medium">${itemTitle}</p>
-            <div class="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
-              <p>Size: ${item.size || 'N/A'}</p>
-              <p>Color: ${item.color || 'N/A'}</p>
-              <p>Quantity: ${item.quantity}</p>
-            </div>
-          </div>
-          <p class="text-xs font-medium">$${(item.price * item.quantity).toFixed(2)}</p>
+  const modal = document.getElementById('orderModal');
+  const orderDetails = document.getElementById('orderDetails');
+  
+  const totalAmount = order.items.reduce(
+    (sum, item) => sum + parseFloat(item.price) * item.quantity,
+    0
+  );
+  
+  orderDetails.innerHTML = `
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <h3 class="font-semibold text-sm mb-2">Order Information</h3>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Order ID:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order._id}')"
+            title="Click to copy"
+          >
+            #${order._id.substring(0, 6)}...
+          </span>
+        </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Date:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${new Date(order.createdAt).toLocaleString()}')"
+            title="Click to copy"
+          >
+            ${new Date(order.createdAt).toLocaleString()}
+          </span>
+        </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Payment Reference:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.payment_reference_code || 'N/A'}')"
+            title="Click to copy"
+          >
+            ${order.payment_reference_code || 'N/A'}
+          </span>
+        </p>
+        <div class="text-xs mb-1.5 flex items-center gap-2">
+          <span class="text-gray-500 dark:text-gray-400">Status:</span> 
+          <select 
+            id="orderStatusSelect" 
+            class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 cursor-pointer"
+            onchange="updateOrderStatus('${order._id}', this.value)"
+            data-order-id="${order._id}"
+          >
+            <option value="pending" ${order.order_status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="success" ${order.order_status === 'success' ? 'selected' : ''}>Completed</option>
+            <option value="cancelled" ${order.order_status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+          <span id="statusUpdateSpinner" class="hidden">
+            <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
         </div>
-      `;
-    }).join('')}
-    <div class="flex justify-between items-center mt-3 pt-2 border-t dark:border-gray-600">
-      <p class="text-xs font-semibold">Total Amount:</p>
-      <p class="text-xs font-semibold cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-         onclick="copyToClipboard('$${totalAmount.toFixed(2)}')"
-         title="Click to copy total amount">
-        $${totalAmount.toFixed(2)}
-      </p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-sm mb-2">Customer Information</h3>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Name:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.delivery_address[0]?.firstName} ${order.delivery_address[0]?.lastName}')"
+            title="Click to copy"
+          >
+            ${order.delivery_address[0]?.firstName} ${order.delivery_address[0]?.lastName}
+          </span>
+        </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Phone:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.delivery_address[0]?.phoneNumber || 'N/A'}')"
+            title="Click to copy"
+          >
+            ${order.delivery_address[0]?.phoneNumber || 'N/A'}
+          </span>
+        </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Address:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.delivery_address[0]?.address}, ${order.delivery_address[0]?.city}')"
+            title="Click to copy"
+          >
+            ${order.delivery_address[0]?.address}, ${order.delivery_address[0]?.city}
+          </span>
+        </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Delivery Option:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.delivery_option || 'N/A'}')"
+            title="Click to copy"
+          >
+            ${order.delivery_option || 'N/A'}
+          </span>
+        </p>
+      </div>
     </div>
-  </div>
-</div>
-`;
-
-modal.classList.remove('hidden');
+    
+    <div class="mt-4">
+      <h3 class="font-semibold text-sm mb-2">Order Items</h3>
+      <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+        ${order.items.map(item => {
+          // Get the title from either product_name or title
+          const itemTitle = item.product_name || item.title;
+          
+          return `
+            <div class="flex justify-between items-center py-1.5 border-b dark:border-gray-600 last:border-0">
+              <div class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+                   onclick="copyToClipboard('${itemTitle} - Size: ${item.size || 'N/A'} - Color: ${item.color || 'N/A'} - Quantity: ${item.quantity} - Price: $${(item.price * item.quantity).toFixed(2)}')"
+                   title="Click to copy item details">
+                <p class="text-xs font-medium">${itemTitle}</p>
+                <div class="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                  <p>Size: ${item.size || 'N/A'}</p>
+                  <p>Color: ${item.color || 'N/A'}</p>
+                  <p>Quantity: ${item.quantity}</p>
+                </div>
+              </div>
+              <p class="text-xs font-medium">$${(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+          `;
+        }).join('')}
+        <div class="flex justify-between items-center mt-3 pt-2 border-t dark:border-gray-600">
+          <p class="text-xs font-semibold">Subtotal:</p>
+          <p class="text-xs font-semibold cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+             onclick="copyToClipboard('$${order.original_amount || totalAmount.toFixed(2)}')"
+             title="Click to copy subtotal">
+            $${order.original_amount || totalAmount.toFixed(2)}
+          </p>
+        </div>
+        ${order.discount_coupon ? `
+        <div class="flex justify-between items-center py-1.5 border-b dark:border-gray-600">
+          <div class="flex items-center gap-2">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Discount Coupon:</p>
+            <span class="text-xs bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400 px-2 py-0.5 rounded-full cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                 onclick="copyToClipboard('${order.discount_coupon}')"
+                 title="Click to copy coupon code">
+              ${order.discount_coupon}
+            </span>
+          </div>
+          <p class="text-xs text-red-600 dark:text-red-400 font-medium cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+             onclick="copyToClipboard('-$${order.discount_amount || 0}')"
+             title="Click to copy discount amount">
+            -$${order.discount_amount || 0}
+          </p>
+        </div>
+        ` : ''}
+        <div class="flex justify-between items-center mt-3 pt-2 border-t dark:border-gray-600">
+          <p class="text-xs font-semibold">Final Total:</p>
+          <p class="text-xs font-semibold cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+             onclick="copyToClipboard('$${order.final_amount || totalAmount.toFixed(2)}')"
+             title="Click to copy final total">
+            $${order.final_amount || totalAmount.toFixed(2)}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  modal.classList.remove('hidden');
 }
 
 // Add copy to clipboard function

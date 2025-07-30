@@ -1,6 +1,6 @@
 const adminCredentials = {
-    username: 'admin',
-    password: 'password123'
+    username: 'PAKAD',
+    password: 'Pakad0125'
   };
   
   // Show alert function

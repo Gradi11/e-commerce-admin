@@ -9,6 +9,6 @@ router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword', resetPassword);
 router.get('/profile', isAuthenticated, getProfile);
-router.post('/logout', isAuthenticated, logout); 
+router.post('/logout', isAuthenticated, logout);
 
 module.exports = router;
