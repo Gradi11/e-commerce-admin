@@ -21,6 +21,29 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  payment_reference_code: {
+    type: String,
+    required: true,
+    default: 'PAY_DEFAULT',
+  },
+  discount_coupon: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  discount_amount: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+  original_amount: {
+    type: Number,
+    required: true,
+  },
+  final_amount: {
+    type: Number,
+    required: true,
+  },
   user: {  
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

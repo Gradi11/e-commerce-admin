@@ -22,7 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Add basic fields
             formData.append('name', document.getElementById('name').value.trim());
-            formData.append('category', document.getElementById('category').value);
+            
+            // Add selected categories
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+                .map(cb => cb.value);
+            formData.append('category', JSON.stringify(selectedCategories));
+            
             formData.append('description', document.getElementById('description').value.trim());
             formData.append('price', document.getElementById('price').value);
             formData.append('stock', document.getElementById('stock').value);
@@ -33,10 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('salePrice', salePrice);
             }
 
-            // Add image
-            const imageFile = document.getElementById('image').files[0];
-            if (imageFile) {
-                formData.append('image', imageFile);
+            // Add images
+            const imageFiles = document.getElementById('image').files;
+            if (imageFiles.length > 0) {
+                for (let i = 0; i < imageFiles.length; i++) {
+                    formData.append('images', imageFiles[i]);
+                }
             }
 
             // Add colors
@@ -109,18 +116,44 @@ async function loadCategories() {
         const data = await response.json();
 
         if (data.success) {
-            const categorySelect = document.getElementById('category');
+            const categoryCheckboxes = document.getElementById('category-checkboxes');
             
-            // Keep the first default option
-            categorySelect.innerHTML = '<option value="">Select a category</option>';
+            // Clear existing content
+            categoryCheckboxes.innerHTML = '';
             
-            // Add categories from server
+            // Add categories as checkboxes
             data.categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.name;
-                option.textContent = category.name;
-                categorySelect.appendChild(option);
+                const label = document.createElement('label');
+                label.className = 'flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer border border-transparent';
+                label.innerHTML = `
+                    <input type="checkbox" name="category" value="${category.name}" 
+                           class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300 font-medium">${category.name}</span>
+                `;
+                categoryCheckboxes.appendChild(label);
             });
+
+            // Add event listeners to track selected categories
+            const checkboxes = categoryCheckboxes.querySelectorAll('input[type="checkbox"]');
+            const selectedCountSpan = document.getElementById('selected-categories-count');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const selectedCount = categoryCheckboxes.querySelectorAll('input[type="checkbox"]:checked').length;
+                    selectedCountSpan.textContent = selectedCount;
+                    
+                    // Update visual feedback
+                    const label = checkbox.closest('label');
+                    if (checkbox.checked) {
+                        label.classList.add('bg-primary/10', 'border-primary/20');
+                    } else {
+                        label.classList.remove('bg-primary/10', 'border-primary/20');
+                    }
+                });
+            });
+
+            // Initialize count
+            selectedCountSpan.textContent = '0';
         } else {
             showAlert('Failed to load categories', 'error');
         }

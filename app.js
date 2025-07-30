@@ -9,6 +9,8 @@ const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const categoryRoutes = require('./routes/categories');
+const discountRoutes = require('./routes/discounts');
+const mobileDiscountRoutes = require('./routes/mobile-discounts');
 const fs = require('fs');
 
 
@@ -56,6 +58,8 @@ app.use('/api/products', productRoutes);
 app.use('/api', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/categories', categoryRoutes);
+app.use('/api/admin/discounts', discountRoutes);
+app.use('/api/mobile/discounts', mobileDiscountRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3000;

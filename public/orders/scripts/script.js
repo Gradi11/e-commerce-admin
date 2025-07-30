@@ -32,6 +32,16 @@ function showOrderDetails(order) {
             ${new Date(order.createdAt).toLocaleString()}
           </span>
         </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Payment Reference:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.payment_reference_code || 'N/A'}')"
+            title="Click to copy"
+          >
+            ${order.payment_reference_code || 'N/A'}
+          </span>
+        </p>
         <div class="text-xs mb-1.5 flex items-center gap-2">
           <span class="text-gray-500 dark:text-gray-400">Status:</span> 
           <select 
@@ -84,6 +94,16 @@ function showOrderDetails(order) {
             ${order.delivery_address[0]?.address}, ${order.delivery_address[0]?.city}
           </span>
         </p>
+        <p class="text-xs mb-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Delivery Option:</span> 
+          <span 
+            class="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+            onclick="copyToClipboard('${order.delivery_option || 'N/A'}')"
+            title="Click to copy"
+          >
+            ${order.delivery_option || 'N/A'}
+          </span>
+        </p>
       </div>
     </div>
     
@@ -111,11 +131,36 @@ function showOrderDetails(order) {
           `;
         }).join('')}
         <div class="flex justify-between items-center mt-3 pt-2 border-t dark:border-gray-600">
-          <p class="text-xs font-semibold">Total Amount:</p>
+          <p class="text-xs font-semibold">Subtotal:</p>
           <p class="text-xs font-semibold cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-             onclick="copyToClipboard('$${totalAmount.toFixed(2)}')"
-             title="Click to copy total amount">
-            $${totalAmount.toFixed(2)}
+             onclick="copyToClipboard('$${order.original_amount || totalAmount.toFixed(2)}')"
+             title="Click to copy subtotal">
+            $${order.original_amount || totalAmount.toFixed(2)}
+          </p>
+        </div>
+        ${order.discount_coupon ? `
+        <div class="flex justify-between items-center py-1.5 border-b dark:border-gray-600">
+          <div class="flex items-center gap-2">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Discount Coupon:</p>
+            <span class="text-xs bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400 px-2 py-0.5 rounded-full cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                 onclick="copyToClipboard('${order.discount_coupon}')"
+                 title="Click to copy coupon code">
+              ${order.discount_coupon}
+            </span>
+          </div>
+          <p class="text-xs text-red-600 dark:text-red-400 font-medium cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+             onclick="copyToClipboard('-$${order.discount_amount || 0}')"
+             title="Click to copy discount amount">
+            -$${order.discount_amount || 0}
+          </p>
+        </div>
+        ` : ''}
+        <div class="flex justify-between items-center mt-3 pt-2 border-t dark:border-gray-600">
+          <p class="text-xs font-semibold">Final Total:</p>
+          <p class="text-xs font-semibold cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+             onclick="copyToClipboard('$${order.final_amount || totalAmount.toFixed(2)}')"
+             title="Click to copy final total">
+            $${order.final_amount || totalAmount.toFixed(2)}
           </p>
         </div>
       </div>

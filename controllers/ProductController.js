@@ -4,30 +4,32 @@ const Product = require('../models/Product');
 // Create product with image handling
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, description, price, salePrice, stock } = req.body;
+        const { name, description, price, salePrice, stock } = req.body;
         
-        // Parse colors and sizes from JSON strings
+        // Parse categories, colors and sizes from JSON strings
+        let categories = [];
         let colors = [];
         let sizes = [];
         try {
+            categories = JSON.parse(req.body.category);
             colors = JSON.parse(req.body.colors);
             sizes = JSON.parse(req.body.sizes);
         } catch (e) {
-            console.error('Error parsing colors/sizes:', e);
+            console.error('Error parsing categories/colors/sizes:', e);
         }
 
         // Validate required fields
-        if (!name || !category || !description || !price || !stock) {
+        if (!name || !categories || categories.length === 0 || !description || !price || !stock) {
             return res.status(400).json({
                 status: 'error',
-                message: 'Please provide all required fields'
+                message: 'Please provide all required fields including at least one category'
             });
         }
 
         // Create product data object
         const productData = {
             name,
-            category,
+            category: categories,
             description,
             price: Number(price),
             stock: Number(stock),
@@ -40,9 +42,9 @@ exports.createProduct = async (req, res) => {
             productData.salePrice = Number(salePrice);
         }
 
-        // Add image if uploaded
-        if (req.file) {
-            productData.image = req.file.filename;
+        // Add images if uploaded
+        if (req.files && req.files.length > 0) {
+            productData.images = req.files.map(file => file.filename);
         }
 
         // Create new product
@@ -91,20 +93,22 @@ exports.getProductById = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
     try {
-        const { name, category, description, price, salePrice, stock } = req.body;
+        const { name, description, price, salePrice, stock } = req.body;
+        let categories = [];
         let colors = [];
         let sizes = [];
         
         try {
+            categories = JSON.parse(req.body.category);
             colors = JSON.parse(req.body.colors);
             sizes = JSON.parse(req.body.sizes);
         } catch (e) {
-            console.error('Error parsing colors/sizes:', e);
+            console.error('Error parsing categories/colors/sizes:', e);
         }
 
         const updateData = {
             name,
-            category,
+            category: categories,
             description,
             price: Number(price),
             stock: Number(stock),
@@ -119,9 +123,9 @@ exports.updateProduct = async (req, res) => {
             updateData.salePrice = null;
         }
 
-        // Handle image if it was uploaded
-        if (req.file) {
-            updateData.image = req.file.filename;
+        // Handle images if they were uploaded
+        if (req.files && req.files.length > 0) {
+            updateData.images = req.files.map(file => file.filename);
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(

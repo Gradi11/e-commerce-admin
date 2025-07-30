@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discount Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/theme-config.js"></script>
+  <script src="/js/theme.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+    }
+    
+    .status-active {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    
+    .status-inactive {
+      background-color: #fef2f2;
+      color: #dc2626;
+    }
+    
+    .status-expired {
+      background-color: #fef3c7;
+      color: #d97706;
+    }
+    
+    .dark .status-active {
+      background-color: #064e3b;
+      color: #6ee7b7;
+    }
+    
+    .dark .status-inactive {
+      background-color: #7f1d1d;
+      color: #fca5a5;
+    }
+    
+    .dark .status-expired {
+      background-color: #78350f;
+      color: #fcd34d;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+  <div class="flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md py-4 px-6 border-b border-gray-200 dark:border-gray-700">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+        <i class="ri-coupon-line text-primary text-3xl mr-2"></i>
+        Discount Management
+      </h1>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+              <i class="ri-coupon-line text-blue-600 dark:text-blue-400 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Discounts</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-discounts">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
+              <i class="ri-check-line text-green-600 dark:text-green-400 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="active-discounts">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900">
+              <i class="ri-time-line text-yellow-600 dark:text-yellow-400 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Expired</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="expired-discounts">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
+              <i class="ri-calendar-line text-purple-600 dark:text-purple-400 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Upcoming</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="upcoming-discounts">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filter Section -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
+          <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
+            <div class="relative">
+              <input 
+                type="text" 
+                id="searchDiscount" 
+                placeholder="Search discounts..." 
+                class="pl-10 pr-4 py-2 border rounded-lg focus:ring-primary focus:border-primary w-64
+                       dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              >
+              <i class="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            
+            <select 
+              id="statusFilter" 
+              class="px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary
+                     dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+
+          <button 
+            onclick="openCreateModal()"
+            class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+            <i class="ri-add-line"></i>
+            <span>Create Discount</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Discounts List -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden" id="discounts-list">
+        <!-- Discount list items will be loaded here -->
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="hidden text-center py-12">
+        <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-gray-600 dark:text-gray-400">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Loading discounts...
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden text-center py-12">
+        <div class="max-w-md mx-auto">
+          <i class="ri-coupon-line text-6xl text-gray-400 dark:text-gray-600 mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No discounts found</h3>
+          <p class="text-gray-500 dark:text-gray-400 mb-6">Create your first discount to start offering deals to customers.</p>
+          <button 
+            onclick="openCreateModal()"
+            class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg flex items-center space-x-2 mx-auto">
+            <i class="ri-add-line"></i>
+            <span>Create Discount</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Create/Edit Discount Modal -->
+    <div id="discount-modal" class="fixed inset-0 bg-black/50 dark:bg-black/70 hidden z-50 overflow-y-auto">
+      <div class="min-h-screen px-4 text-center flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-2/3 max-w-4xl my-8 text-left">
+          <!-- Modal Header -->
+          <div class="sticky top-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-semibold text-gray-800 dark:text-white" id="modal-title">
+                Create New Discount
+              </h3>
+              <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6">
+            <form id="discount-form" class="space-y-6">
+              <!-- Basic Information -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Discount Code *
+                    </label>
+                    <input type="text" id="discount-code" required
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary 
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                      placeholder="e.g., SUMMER20">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Discount Name *
+                    </label>
+                    <input type="text" id="discount-name" required
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary 
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                      placeholder="e.g., Summer Sale">
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea id="discount-description" rows="3"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white resize-none"
+                      placeholder="Describe the discount offer..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Discount Type and Value -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Discount Details</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Discount Type *
+                    </label>
+                    <select id="discount-type" required
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+                      <option value="percentage">Percentage (%)</option>
+                      <option value="fixed">Fixed Amount ($)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Discount Value *
+                    </label>
+                    <input type="number" id="discount-value" required min="0" step="0.01"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                      placeholder="20">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Maximum Discount ($)
+                    </label>
+                    <input type="number" id="max-discount" min="0" step="0.01"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                      placeholder="50">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Conditions -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Conditions</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Minimum Order Amount ($)
+                    </label>
+                    <input type="number" id="min-order-amount" min="0" step="0.01"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                      placeholder="0">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Maximum Usage
+                    </label>
+                    <input type="number" id="max-usage" min="1"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                      placeholder="Unlimited">
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="flex items-center">
+                    <input type="checkbox" id="first-time-only"
+                      class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">First-time customers only</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Validity Period -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Validity Period</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Start Date *
+                    </label>
+                    <input type="datetime-local" id="start-date" required
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      End Date *
+                    </label>
+                    <input type="datetime-local" id="end-date" required
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Status</h4>
+                <label class="flex items-center">
+                  <input type="checkbox" id="is-active" checked
+                    class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+                  <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
+                </label>
+              </div>
+
+              <!-- Submit Buttons -->
+              <div class="flex justify-end space-x-4 pt-4">
+                <button type="button" onclick="closeModal()"
+                  class="px-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" id="submit-btn"
+                  class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                  Create Discount
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow-md py-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+      &copy; 2025 Discount Management. All rights reserved.
+    </footer>
+  </div>
+
+  <script src="scripts/script.js"></script>
+</body>
+</html> 

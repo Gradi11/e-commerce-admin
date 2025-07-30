@@ -99,8 +99,12 @@ function filterProducts() {
 
   const filteredProducts = allProducts.filter(product => {
     const nameMatch = product.name.toLowerCase().includes(searchTerm);
+    
+    // Handle multiple categories
+    const productCategories = Array.isArray(product.category) ? product.category : [product.category];
     const categoryMatch = categoryValue === 'all' || 
-                        product.category.toLowerCase() === categoryValue;
+                        productCategories.some(cat => cat.toLowerCase() === categoryValue);
+    
     const statusMatch = statusValue === 'all' || 
                       (statusValue === 'instock' && product.stock > 0) ||
                       (statusValue === 'outofstock' && product.stock === 0);
@@ -119,11 +123,17 @@ function displayProducts(products) {
   productList.innerHTML = products.map(product => `
     <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
       <td class="py-4 px-4">
-        <img src="/public/uploads/products/${product.image}" alt="${product.name}" class="product-image">
+        ${product.images && product.images.length > 0 ? `<img src="/public/uploads/products/${product.images[0]}" alt="${product.name}" class="product-image">` : ''}
       </td>
       <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.name}</td>
       <td class="py-4 px-4 description text-gray-900 dark:text-gray-300">${product.description}</td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.category}</td>
+      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">
+        <span class="cursor-help" title="${Array.isArray(product.category) ? product.category.join(', ') : product.category}">
+          ${Array.isArray(product.category) ? 
+            `${product.category[0]}${product.category.length > 1 ? ' <span class="text-primary font-medium">+' + (product.category.length - 1) + ' more</span>' : ''}` : 
+            product.category}
+        </span>
+      </td>
       <td class="py-4 px-4 text-gray-900 dark:text-gray-300">$${product.price}</td>
       <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.salePrice ? `$${product.salePrice}` : 'N/A'}</td>
       <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</td>
@@ -164,16 +174,42 @@ async function editProduct(id) {
     const categoryData = await categoryResponse.json();
     
     if (categoryData.success) {
-      const categorySelect = document.getElementById('edit-category');
-      categorySelect.innerHTML = ''; // Clear existing options
+      const categoryCheckboxes = document.getElementById('edit-category-checkboxes');
+      categoryCheckboxes.innerHTML = ''; // Clear existing options
       
-      // Add categories from server
+      // Add categories from server as checkboxes
       categoryData.categories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.name;
-        option.textContent = category.name;
-        categorySelect.appendChild(option);
+        const label = document.createElement('label');
+        label.className = 'flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer border border-transparent';
+        label.innerHTML = `
+          <input type="checkbox" name="edit-category" value="${category.name}" 
+                 class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+          <span class="ml-3 text-sm text-gray-700 dark:text-gray-300 font-medium">${category.name}</span>
+        `;
+        categoryCheckboxes.appendChild(label);
       });
+
+      // Add event listeners to track selected categories in edit modal
+      const editCheckboxes = categoryCheckboxes.querySelectorAll('input[type="checkbox"]');
+      const editSelectedCountSpan = document.getElementById('edit-selected-categories-count');
+      
+      editCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+          const selectedCount = categoryCheckboxes.querySelectorAll('input[type="checkbox"]:checked').length;
+          editSelectedCountSpan.textContent = selectedCount;
+          
+          // Update visual feedback
+          const label = checkbox.closest('label');
+          if (checkbox.checked) {
+            label.classList.add('bg-primary/10', 'border-primary/20');
+          } else {
+            label.classList.remove('bg-primary/10', 'border-primary/20');
+          }
+        });
+      });
+
+      // Initialize count
+      editSelectedCountSpan.textContent = '0';
     }
 
     // Then fetch product details
@@ -196,7 +232,24 @@ async function editProduct(id) {
 
     // Populate form fields
     document.getElementById('edit-name').value = product.name;
-    document.getElementById('edit-category').value = product.category; // Now sets the select value
+    
+    // Set selected categories
+    const productCategories = Array.isArray(product.category) ? product.category : [product.category];
+    document.querySelectorAll('input[name="edit-category"]').forEach(checkbox => {
+      checkbox.checked = productCategories.includes(checkbox.value);
+      
+      // Update visual feedback for checked categories
+      const label = checkbox.closest('label');
+      if (checkbox.checked) {
+        label.classList.add('bg-primary/10', 'border-primary/20');
+      }
+    });
+    
+    // Update selected count
+    const editSelectedCountSpan = document.getElementById('edit-selected-categories-count');
+    const selectedCount = document.querySelectorAll('input[name="edit-category"]:checked').length;
+    editSelectedCountSpan.textContent = selectedCount;
+    
     document.getElementById('edit-description').value = product.description;
     document.getElementById('edit-price').value = product.price;
     document.getElementById('edit-salePrice').value = product.salePrice || '';
@@ -230,9 +283,13 @@ async function editProduct(id) {
         const selectedSizes = Array.from(document.querySelectorAll('input[name="sizes"]:checked'))
           .map(cb => cb.value);
         
+        // Get selected categories
+        const selectedCategories = Array.from(document.querySelectorAll('input[name="edit-category"]:checked'))
+          .map(cb => cb.value);
+        
         // Add all form data
         formData.append('name', document.getElementById('edit-name').value);
-        formData.append('category', document.getElementById('edit-category').value);
+        formData.append('category', JSON.stringify(selectedCategories));
         formData.append('description', document.getElementById('edit-description').value);
         formData.append('price', document.getElementById('edit-price').value);
         formData.append('salePrice', document.getElementById('edit-salePrice').value || '');
@@ -241,9 +298,11 @@ async function editProduct(id) {
         formData.append('sizes', JSON.stringify(selectedSizes));
 
         // Image handling
-        const imageFile = document.getElementById('edit-image').files[0];
-        if (imageFile) {
-          formData.append('image', imageFile);
+        const imageFiles = document.getElementById('edit-image').files;
+        if (imageFiles.length > 0) {
+          for (let i = 0; i < imageFiles.length; i++) {
+            formData.append('images', imageFiles[i]);
+          }
         }
 
         // Show loading state
