@@ -35,13 +35,18 @@ function displayCategories(categories) {
         // Get appropriate icon based on category name
         const iconClass = getCategoryIcon(category.name);
         
+        // Display image if available, otherwise show icon
+        const imageDisplay = category.image 
+            ? `<img src="/uploads/categories/${category.image}" alt="${category.name}" class="w-16 h-16 object-cover rounded-lg">`
+            : `<div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                 <i class="${iconClass} text-2xl text-blue-500"></i>
+               </div>`;
+        
         return `
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 transform transition-all duration-200 hover:scale-105">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                        <i class="${iconClass} text-2xl text-blue-500"></i>
-                    </div>
+                    ${imageDisplay}
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-white">${category.name}</h3>
                 </div>
                 <div class="flex space-x-2">
@@ -98,15 +103,59 @@ function getCategoryIcon(categoryName) {
     return 'ri-price-tag-3-line'; // Default icon
 }
 
+// Handle image upload and preview
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showAlert('File size must be less than 5MB', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showAlert('Please select a valid image file (PNG, JPG, GIF, WEBP)', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('imagePreview').classList.remove('hidden');
+        document.getElementById('fileInputContainer').classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Remove image preview
+function removeImage() {
+    document.getElementById('categoryImage').value = '';
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('fileInputContainer').classList.remove('hidden');
+    document.getElementById('previewImg').src = '';
+}
+
 // Modal handling
 function openAddModal() {
     document.getElementById('modalTitle').textContent = 'Add New Category';
     document.getElementById('categoryForm').reset();
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('fileInputContainer').classList.remove('hidden');
     document.getElementById('categoryModal').classList.remove('hidden');
 }
 
 function closeModal() {
     document.getElementById('categoryModal').classList.add('hidden');
+    // Reset image preview
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('fileInputContainer').classList.remove('hidden');
+    document.getElementById('previewImg').src = '';
 }
 
 // Form handling
@@ -116,9 +165,23 @@ function setupFormHandling() {
         e.preventDefault();
         
         const categoryId = form.dataset.categoryId;
-        const formData = {
-            name: document.getElementById('categoryName').value
-        };
+        
+        // Get the name value first
+        const name = document.getElementById('categoryName').value;
+        if (!name || name.trim() === '') {
+            showAlert('Category name is required', 'error');
+            return;
+        }
+
+        // Create FormData manually to ensure proper structure
+        const formData = new FormData();
+        formData.append('name', name.trim());
+        
+        // Add image file if selected
+        const imageFile = document.getElementById('categoryImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
 
         try {
             const token = localStorage.getItem('adminToken');
@@ -129,10 +192,9 @@ function setupFormHandling() {
                 {
                     method: categoryId ? 'PUT' : 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(formData)
+                    body: formData
                 }
             );
 
@@ -183,6 +245,16 @@ async function editCategory(id) {
             // Set modal title and form values
             document.getElementById('modalTitle').textContent = 'Edit Category';
             document.getElementById('categoryName').value = data.category.name;
+            
+            // Handle image preview for editing
+            if (data.category.image) {
+                document.getElementById('previewImg').src = `/uploads/categories/${data.category.image}`;
+                document.getElementById('imagePreview').classList.remove('hidden');
+                document.getElementById('fileInputContainer').classList.add('hidden');
+            } else {
+                document.getElementById('imagePreview').classList.add('hidden');
+                document.getElementById('fileInputContainer').classList.remove('hidden');
+            }
             
             // Add category ID to form for update
             form.dataset.categoryId = id;
