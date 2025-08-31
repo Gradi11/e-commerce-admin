@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/theme-config.js"></script>
+  <script src="/js/theme.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    /* Add a style to limit description to one line */
+    .description {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px; /* Adjust to the size you want */
+    }
+    .product-image {
+      max-width: 50px; /* Limit the image size */
+      max-height: 50px;
+    }
+    
+    /* Custom styles for category selection */
+    .category-checkbox-container {
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e0 #f7fafc;
+    }
+    
+    .category-checkbox-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .category-checkbox-container::-webkit-scrollbar-track {
+      background: #f7fafc;
+      border-radius: 3px;
+    }
+    
+    .category-checkbox-container::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 3px;
+    }
+    
+    .category-checkbox-container::-webkit-scrollbar-thumb:hover {
+      background: #a0aec0;
+    }
+    
+    .dark .category-checkbox-container::-webkit-scrollbar-track {
+      background: #2d3748;
+    }
+    
+    .dark .category-checkbox-container::-webkit-scrollbar-thumb {
+      background: #4a5568;
+    }
+    
+    .dark .category-checkbox-container::-webkit-scrollbar-thumb:hover {
+      background: #718096;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+  <div class="flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md py-4 px-6 border-b border-gray-200 dark:border-gray-700">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+        <i class="ri-shopping-cart-line text-primary text-3xl mr-2"></i>
+        Products
+      </h1>
+    </header>
+
+
+    <!-- Products Content -->
+    <main class="flex-1 p-10">
+      <!-- Search and Filter Section -->
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-4">
+          <h2 class="text-xl font-semibold text-gray-800 dark:text-white">All Products</h2>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="searchProduct" 
+              placeholder="Search products..." 
+              class="pl-10 pr-4 py-2 border rounded-lg focus:ring-primary focus:border-primary w-64
+                     dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            >
+            <i class="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+          <select 
+            id="categoryFilter" 
+            class="px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary
+                   dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <option value="all">All Categories</option>
+            <!-- Categories will be loaded dynamically -->
+          </select>
+        </div>
+        <div class="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow">
+          <span class="text-gray-600 dark:text-gray-400">Total Products:</span>
+          <span class="ml-2 text-primary dark:text-primary font-semibold" id="total-products-count">0</span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl" id="product-table">
+          <thead class="bg-blue-100 dark:bg-gray-700">
+            <tr>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Images</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Name</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Description</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Category</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Price</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Sale Price</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Stock</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Colors</th>
+              <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Sizes</th>
+              <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="product-list" class="divide-y divide-gray-200 dark:divide-gray-700">
+            <!-- Product rows will be injected here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Add Product Button (Fixed at bottom) -->
+      <div class="fixed bottom-6 right-6">
+        <a href="../addProduct/index.html" 
+          class="group bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105">
+          <i class="ri-add-line text-xl"></i>
+          <span class="font-medium">Add New Product</span>
+          <div class="absolute inset-0 bg-white rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
+        </a>
+      </div>
+    </main>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-product-modal" class="fixed inset-0 bg-black/50 dark:bg-black/70 hidden z-50 overflow-y-auto">
+      <div class="min-h-screen px-4 text-center flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 max-w-2xl my-8 text-left">
+          <!-- Modal Header -->
+          <div class="sticky top-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-lg">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
+                Edit Product Details
+              </h3>
+              <button id="close-product-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6">
+            <form id="edit-product-form" class="space-y-6">
+              <!-- Basic Information Section -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Name Field -->
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Product Name
+                    </label>
+                    <input type="text" id="edit-name" required
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary 
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-lg">
+                  </div>
+
+                  <!-- Category Field -->
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Categories (Select multiple)
+                    </label>
+                    <div class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4 max-h-48 overflow-y-auto category-checkbox-container">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="edit-category-checkboxes">
+                        <!-- Categories will be loaded dynamically -->
+                      </div>
+                      <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                          Selected: <span id="edit-selected-categories-count" class="font-medium text-primary">0</span> categories
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Description Field -->
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Description
+                    </label>
+                    <textarea id="edit-description" required rows="4"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-base resize-none"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pricing & Stock Section -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Pricing & Stock</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <!-- Price Field -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Price</label>
+                    <div class="relative">
+                      <span class="absolute left-3 top-3 text-gray-500 dark:text-gray-400 text-lg">$</span>
+                      <input type="number" id="edit-price" required step="0.01" min="0"
+                        class="w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                               bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-lg">
+                    </div>
+                  </div>
+
+                  <!-- Sale Price Field -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Sale Price</label>
+                    <div class="relative">
+                      <span class="absolute left-3 top-3 text-gray-500 dark:text-gray-400 text-lg">$</span>
+                      <input type="number" id="edit-salePrice" step="0.01" min="0"
+                        class="w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                               bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-lg">
+                    </div>
+                  </div>
+
+                  <!-- Stock Field -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Stock</label>
+                    <input type="number" id="edit-stock" required min="0"
+                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                             bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-lg">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Variants Section -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Product Variants</h4>
+                
+                <!-- Colors -->
+                <div class="mb-6">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Colors</label>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Color checkboxes -->
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="White" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">White</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Black" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Black</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Blue" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Blue</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Red" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Red</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Green" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Green</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Grey" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Grey</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Yellow" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Yellow</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Orange" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Orange</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Pink" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Pink</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Purple" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Purple</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Brown" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Brown</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Beige" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Beige</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Gold" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Gold</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Silver" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Silver</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Navy Blue" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Navy Blue</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Cyan" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Cyan / Turquoise</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Burgundy" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Burgundy</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Olive" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Olive / Khaki</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" name="colors" value="Mint Green" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                      <span class="ml-2 text-gray-700 dark:text-gray-300">Mint Green</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Sizes -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sizes</label>
+                  <div class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                    
+                    <!-- Adult Clothing Sizes -->
+                    <div class="mb-6">
+                      <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Adult Clothing (Men & Women)</h4>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="M" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">M</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="L" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">L</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="XL" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">XL</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="2XL" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">2XL</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="3XL" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">3XL</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="4XL" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">4XL</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="5XL" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">5XL</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Adult Shoe Sizes -->
+                    <div class="mb-6">
+                      <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Adult Shoe Sizes (EU)</h4>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="35" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">35</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="36" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">36</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="37" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">37</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="38" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">38</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="39" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">39</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="40" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">40</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="41" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">41</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="42" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">42</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="43" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">43</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="44" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">44</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="45" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">45</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="46" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">46</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Children's Clothing Sizes -->
+                    <div class="mb-6">
+                      <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Children's Clothing (EU)</h4>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="56-62" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">56-62</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="68-80" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">68-80</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="80-92" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">80-92</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="92-104" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">92-104</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="104-116" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">104-116</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="116-128" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">116-128</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="128-140" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">128-140</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Children's Shoe Sizes -->
+                    <div>
+                      <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Children's Shoe Sizes (EU)</h4>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Individual Sizes 1-10 -->
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="1" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">1</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="2" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">2</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="3" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">3</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="4" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">4</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="5" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">5</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="6" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">6</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="7" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">7</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="8" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">8</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="9" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">9</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="10" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">10</span>
+                        </label>
+                        <!-- Existing Range Sizes -->
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="16-17" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">16-17</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="18-19" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">18-19</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="20-21" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">20-21</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="24-25" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">24-25</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="27-28" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">27-28</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name="sizes" value="31-32" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded">
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">31-32</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Image Section -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Product Images</h4>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    New Images (optional, Max 6)
+                  </label>
+                  <input type="file" id="edit-image" accept="image/*" multiple
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                           bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white
+                           file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0
+                           file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
+                           dark:file:bg-blue-900 dark:file:text-blue-200
+                           hover:file:bg-blue-100 dark:hover:file:bg-blue-800">
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="flex justify-end space-x-4 pt-4">
+                <button type="button" onclick="closeModal()"
+                  class="px-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-base font-medium">
+                  Cancel
+                </button>
+                <button type="submit" 
+                  class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 
+                         focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors text-base font-medium">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow-md py-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+      &copy; 2025 Products Dashboard. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+    // Fetch all products from the server
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      window.location.href = '../index.html'; // Redirect to login if no token is found
+    } else {
+      fetch('/api/products', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+        },
+      })
+        .then(response => response.json())
+        .then(responseData => {
+          const products = responseData.data; // Access the "data" array from the response
+  
+          const productList = document.getElementById('product-list');
+          products.forEach(product => {
+            const row = document.createElement('tr');
+            row.classList.add('border-b', 'hover:bg-gray-50', 'dark:border-gray-700', 'dark:hover:bg-gray-700');
+            
+            row.innerHTML = `
+              <td class="py-4 px-4">
+                <!-- Multiple images will be rendered by JS -->
+              </td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.name}</td>
+              <td class="py-4 px-4 description text-gray-900 dark:text-gray-300">${product.description}</td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">
+                <span class="cursor-help" title="${Array.isArray(product.category) ? product.category.join(', ') : product.category}">
+                  ${Array.isArray(product.category) ? 
+                    `${product.category[0]}${product.category.length > 1 ? ' <span class="text-primary font-medium">+' + (product.category.length - 1) + ' more</span>' : ''}` : 
+                    product.category}
+                </span>
+              </td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">$${product.price}</td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">$${product.salePrice || 'N/A'}</td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.colors.join(', ')}</td>
+              <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.sizes.join(', ')}</td>
+              <td class="py-4 px-4 text-center">
+                <button class="text-primary dark:text-primary hover:text-primary/80 dark:hover:text-primary/80 hover:underline mr-2">Edit</button>
+                <button class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:underline">Delete</button>
+              </td>
+            `;
+            
+            productList.appendChild(row);
+          });
+        })
+        .catch(err => console.error('Error fetching products:', err));
+    }
+  </script>
+  
+  <script src="scripts/script.js"></script>
+</body>
+</html>

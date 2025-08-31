@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/js/theme-config.js"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+  <div class="w-full max-w-md p-8 bg-white rounded-xl shadow-md">
+    <h1 class="text-2xl font-semibold text-center text-gray-700">Admin Login</h1>
+
+    <form id="loginForm" class="mt-6">
+      <div class="mb-4">
+        <label for="username" class="block text-sm font-medium text-gray-600">Username</label>
+        <input type="text" id="username" name="username" class="w-full p-2 mt-1 border rounded-md focus:ring focus:ring-primary" required>
+      </div>
+      <div class="mb-4">
+        <label for="password" class="block text-sm font-medium text-gray-600">Password</label>
+        <input type="password" id="password" name="password" class="w-full p-2 mt-1 border rounded-md focus:ring focus:ring-primary" required>
+      </div>
+      <button type="submit" class="w-full p-2 mt-4 text-white bg-primary rounded-lg hover:bg-primary/90">Login</button>
+    </form>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

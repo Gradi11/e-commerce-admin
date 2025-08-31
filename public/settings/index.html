@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/theme-config.js"></script>
+    <script src="/js/theme.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-md py-4 px-6 border-b border-gray-200 dark:border-gray-700">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                <i class="ri-settings-3-line text-primary text-3xl mr-2"></i>
+                Settings
+            </h1>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10">
+            <div class="max-w-4xl mx-auto">
+                <!-- Theme Settings Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Theme Settings</h2>
+                    <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800 dark:text-white">Dark Mode</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Toggle dark mode for the entire dashboard</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="darkModeToggle" class="sr-only peer">
+                            <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 dark:peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Other settings sections can go here -->
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white dark:bg-gray-800 shadow-md py-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+            &copy; 2025 Dashboard. All rights reserved.
+        </footer>
+    </div>
+<script src="scripts/script.js"></script>
+</body>
+</html> 
