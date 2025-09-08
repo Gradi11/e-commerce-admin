@@ -22,7 +22,6 @@ let products = [];
       }
 
       const data = await response.json();
-      console.log('Products data:', data); // Debug log
       
       if (data.success) {
         products = data.data;
@@ -36,21 +35,19 @@ let products = [];
           `).join('')}
         `;
       } else {
-        console.error('Failed to fetch products:', data.message);
+
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+
     }
   });
 
   // Update size and color options when product changes
   document.getElementById('product').addEventListener('change', (e) => {
     const productId = e.target.value;
-    console.log('Selected product ID:', productId); // Debug log
     const product = products.find(p => p._id === productId);
     
     if (product) {
-      console.log('Found product:', product); // Debug log
       
       // Update sizes dropdown
       const sizeSelect = document.getElementById('size');
@@ -153,7 +150,7 @@ let products = [];
         throw new Error('Please enter complete address');
       }
 
-      console.log('Submitting order:', formData);
+
 
       const response = await fetch('/api/admin/orders/add', {
         method: 'POST',
@@ -165,7 +162,6 @@ let products = [];
       });
 
       const data = await response.json();
-      console.log('Response:', data);
 
       if (data.success) {
         showDialog(true, 'Order has been created successfully!');
@@ -173,7 +169,7 @@ let products = [];
         showDialog(false, data.message || 'Failed to create order');
       }
     } catch (error) {
-      console.error('Error adding order:', error);
+
       showDialog(false, error.message);
     }
   });

@@ -40,12 +40,18 @@ async function fetchProducts() {
     
     if (data.data) {
       allProducts = data.data;
+      
+      // Debug: Check for products without IDs
+      const productsWithoutId = allProducts.filter(product => !product._id);
+      if (productsWithoutId.length > 0) {
+
+      }
+      
       filterProducts();
     } else {
       throw new Error(data.message || 'No products found');
     }
   } catch (error) {
-    console.error('Error:', error);
     showAlert(error.message || 'Error fetching products', 'error');
   }
 }
@@ -86,7 +92,6 @@ async function loadCategories() {
       throw new Error(data.message || 'Failed to load categories');
     }
   } catch (error) {
-    console.error('Error:', error);
     showAlert(error.message || 'Error loading categories', 'error');
   }
 }
@@ -120,41 +125,61 @@ function filterProducts() {
 function displayProducts(products) {
   const productList = document.getElementById('product-list');
 
-  productList.innerHTML = products.map(product => `
-    <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
-      <td class="py-4 px-4">
-        ${product.images && product.images.length > 0 ? `<img src="/public/uploads/products/${product.images[0]}" alt="${product.name}" class="product-image">` : ''}
-      </td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.name}</td>
-      <td class="py-4 px-4 description text-gray-900 dark:text-gray-300">${product.description}</td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">
-        <span class="cursor-help" title="${Array.isArray(product.category) ? product.category.join(', ') : product.category}">
-          ${Array.isArray(product.category) ? 
-            `${product.category[0]}${product.category.length > 1 ? ' <span class="text-primary font-medium">+' + (product.category.length - 1) + ' more</span>' : ''}` : 
-            product.category}
-        </span>
-      </td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">$${product.price}</td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.salePrice ? `$${product.salePrice}` : 'N/A'}</td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.colors.join(', ')}</td>
-      <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.sizes.join(', ')}</td>
-      <td class="py-4 px-4 text-center">
-        <button onclick="editProduct('${product._id}')" 
-                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline mr-2">
-          Edit
-        </button>
-        <button onclick="deleteProduct('${product._id}')"
-                class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:underline">
-          Delete
-        </button>
-      </td>
-    </tr>
-  `).join('');
+  productList.innerHTML = products.map(product => {
+    // Check if product has a valid ID
+    if (!product._id) {
+      
+      return `
+        <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
+          <td colspan="10" class="py-4 px-4 text-center text-red-500">
+            Product missing ID - ${product.name || 'Unknown'}
+          </td>
+        </tr>
+      `;
+    }
+
+    return `
+      <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700">
+        <td class="py-4 px-4">
+          ${product.images && product.images.length > 0 ? `<img src="${product.images[0]}" alt="${product.name}" class="product-image">` : ''}
+        </td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.name}</td>
+        <td class="py-4 px-4 description text-gray-900 dark:text-gray-300">${product.description}</td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">
+          <span class="cursor-help" title="${Array.isArray(product.category) ? product.category.join(', ') : product.category}">
+            ${Array.isArray(product.category) ? 
+              `${product.category[0]}${product.category.length > 1 ? ' <span class="text-primary font-medium">+' + (product.category.length - 1) + ' more</span>' : ''}` : 
+              product.category}
+          </span>
+        </td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">$${product.price}</td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.salePrice ? `$${product.salePrice}` : 'N/A'}</td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.colors.join(', ')}</td>
+        <td class="py-4 px-4 text-gray-900 dark:text-gray-300">${product.sizes.join(', ')}</td>
+        <td class="py-4 px-4 text-center">
+          <button onclick="editProduct('${product._id}')" 
+                  class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline mr-2">
+            Edit
+          </button>
+          <button onclick="deleteProduct('${product._id}')"
+                  class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:underline">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // Edit product function
 async function editProduct(id) {
+  // Validate ID parameter
+  if (!id || id === 'undefined') {
+    showAlert('Invalid product ID. Please refresh the page and try again.', 'error');
+    return;
+  }
+
   const modal = document.getElementById('edit-product-modal');
   const form = document.getElementById('edit-product-form');
   
@@ -330,7 +355,6 @@ async function editProduct(id) {
           throw new Error(result.message || 'Failed to update product');
         }
       } catch (error) {
-        console.error('Error:', error);
         showAlert(error.message || 'Error updating product', 'error');
       } finally {
         // Reset button state
@@ -340,7 +364,6 @@ async function editProduct(id) {
       }
     };
   } catch (error) {
-    console.error('Error:', error);
     showAlert('Error loading product details', 'error');
   }
 }
@@ -371,6 +394,12 @@ document.getElementById('edit-product-modal').addEventListener('click', (e) => {
 
 // Delete product function
 function deleteProduct(id) {
+  // Validate ID parameter
+  if (!id || id === 'undefined') {
+    showAlert('Invalid product ID. Please refresh the page and try again.', 'error');
+    return;
+  }
+
   // Create modal backdrop
   const backdrop = document.createElement('div');
   backdrop.className = 'fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50';
@@ -453,7 +482,6 @@ function deleteProduct(id) {
         throw new Error(data.message || 'Failed to delete product');
       }
     } catch (error) {
-      console.error('Error:', error);
       showAlert(error.message || 'Error deleting product', 'error');
     }
   };

@@ -32,7 +32,7 @@ if (activeUsersData.status === 'success') {
   document.getElementById('activeUsers').textContent = '0';
 }
 } catch (error) {
-console.error('Error fetching user stats:', error);
+
 document.getElementById('totalUsers').textContent = '0';
 document.getElementById('activeUsers').textContent = '0';
 }
@@ -58,7 +58,7 @@ if (revenueData.success && revenueData.data) {
   document.getElementById('totalRevenue').textContent = '$0.00';
 }
 } catch (error) {
-console.error('Error fetching total revenue:', error);
+
 document.getElementById('totalRevenue').textContent = 'Error';
 }
 }
@@ -86,11 +86,11 @@ if (orderStatusData.success) {
   orderStatusChart.data.datasets[1].data = cancelledOrders;
   orderStatusChart.update();
 } else {
-  console.error('Error fetching order status:', orderStatusData.message);
+  
 }
 
 } catch (error) {
-console.error('Error fetching order status data:', error);
+
 }
 }
 
@@ -116,11 +116,11 @@ if (totalOrdersData.success) {
   totalOrdersChart.data.datasets[0].data = totalOrders;
   totalOrdersChart.update();
 } else {
-  console.error('Error fetching total orders:', totalOrdersData.message);
+  
 }
 
 } catch (error) {
-console.error('Error fetching total orders data:', error);
+
 }
 }
 
@@ -228,7 +228,7 @@ if (data.success && data.data) {
   }).join('');
 }
 } catch (error) {
-console.error('Error fetching recent orders:', error);
+
 }
 }
 
@@ -499,7 +499,7 @@ if (data.success) {
   throw new Error(data.message || 'Failed to update status');
 }
 } catch (error) {
-console.error('Error updating order status:', error);
+
 statusSelect.value = originalValue;
 
 const tooltip = document.createElement('div');

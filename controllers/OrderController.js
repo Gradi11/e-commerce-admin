@@ -513,7 +513,7 @@ exports.createOrderWithAmounts = async (req, res) => {
       discount_amount = 0
     } = req.body;
 
-    console.log('Creating order with data:', req.body);
+
 
     // Validate input
     if (!items || !Array.isArray(items)) {
@@ -555,11 +555,7 @@ exports.createOrderWithAmounts = async (req, res) => {
     calculatedFinalAmount = Math.max(0, calculatedFinalAmount);
     calculatedDiscountAmount = Math.max(0, calculatedDiscountAmount);
 
-    console.log('Calculated amounts:', {
-      original: calculatedOriginalAmount,
-      final: calculatedFinalAmount,
-      discount: calculatedDiscountAmount
-    });
+
 
     // Create the order
     const order = new Order({

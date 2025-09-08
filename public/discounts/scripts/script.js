@@ -45,7 +45,7 @@ async function loadDiscountStats() {
       document.getElementById('upcoming-discounts').textContent = data.data.upcoming;
     }
   } catch (error) {
-    console.error('Error loading discount stats:', error);
+    
     showAlert('Error loading discount statistics', 'error');
   }
 }
@@ -80,7 +80,6 @@ async function fetchDiscounts() {
       throw new Error(data.message || 'No discounts found');
     }
   } catch (error) {
-    console.error('Error:', error);
     showAlert(error.message || 'Error fetching discounts', 'error');
     showEmptyState();
   } finally {
@@ -379,7 +378,6 @@ async function editDiscount(id) {
 
     openModal();
   } catch (error) {
-    console.error('Error:', error);
     showAlert('Error loading discount details', 'error');
   }
 }
@@ -449,7 +447,6 @@ document.getElementById('discount-form').addEventListener('submit', async (e) =>
       throw new Error(data.message || 'Failed to save discount');
     }
   } catch (error) {
-    console.error('Error:', error);
     showAlert(error.message || 'Error saving discount', 'error');
   }
 });
@@ -475,7 +472,6 @@ async function toggleDiscountStatus(id) {
       throw new Error(data.message || 'Failed to toggle discount status');
     }
   } catch (error) {
-    console.error('Error:', error);
     showAlert(error.message || 'Error toggling discount status', 'error');
   }
 }
@@ -562,7 +558,6 @@ function deleteDiscount(id) {
         throw new Error(data.message || 'Failed to delete discount');
       }
     } catch (error) {
-      console.error('Error:', error);
       showAlert(error.message || 'Error deleting discount', 'error');
     }
   };

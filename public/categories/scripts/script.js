@@ -23,7 +23,7 @@ async function loadCategories() {
             showAlert('Failed to load categories', 'error');
         }
     } catch (error) {
-        console.error('Error loading categories:', error);
+
         showAlert('Error loading categories', 'error');
     }
 }
@@ -37,7 +37,7 @@ function displayCategories(categories) {
         
         // Display image if available, otherwise show icon
         const imageDisplay = category.image 
-            ? `<img src="/uploads/categories/${category.image}" alt="${category.name}" class="w-16 h-16 object-cover rounded-lg">`
+            ? `<img src="${category.image.startsWith('http') ? category.image : `/uploads/categories/${category.image}`}" alt="${category.name}" class="w-16 h-16 object-cover rounded-lg">`
             : `<div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                  <i class="${iconClass} text-2xl text-blue-500"></i>
                </div>`;
@@ -213,7 +213,7 @@ function setupFormHandling() {
                 showAlert(data.message || 'Operation failed', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
+    
             showAlert('Operation failed', 'error');
         }
     });
@@ -248,7 +248,7 @@ async function editCategory(id) {
             
             // Handle image preview for editing
             if (data.category.image) {
-                document.getElementById('previewImg').src = `/uploads/categories/${data.category.image}`;
+                document.getElementById('previewImg').src = data.category.image.startsWith('http') ? data.category.image : `/uploads/categories/${data.category.image}`;
                 document.getElementById('imagePreview').classList.remove('hidden');
                 document.getElementById('fileInputContainer').classList.add('hidden');
             } else {
@@ -265,7 +265,7 @@ async function editCategory(id) {
             throw new Error(data.message || 'Failed to load category details');
         }
     } catch (error) {
-        console.error('Error loading category:', error);
+
         showAlert(error.message || 'Error loading category details', 'error');
     }
 }
@@ -319,7 +319,7 @@ async function deleteCategory(id) {
                 showAlert(data.message || 'Failed to delete category', 'error');
             }
         } catch (error) {
-            console.error('Error deleting category:', error);
+
             showAlert('Error deleting category', 'error');
             dialog.remove();
         }

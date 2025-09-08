@@ -22,7 +22,7 @@ async function fetchUsers() {
       filterUsers();
     }
   } catch (error) {
-    console.error('Error:', error);
+    
   }
 }
 
@@ -152,7 +152,6 @@ async function openEditModal(id, name, email, password, isLogged) {
                 showAlert(data.message || 'Failed to update user', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
             showAlert('Error updating user', 'error');
         }
     };
@@ -318,7 +317,6 @@ async function confirmDelete(id, button) {
             showAlert(data.message || 'Failed to delete user', 'error');
         }
     } catch (error) {
-        console.error('Error:', error);
         showAlert('Error deleting user', 'error');
     }
 }

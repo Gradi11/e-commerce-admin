@@ -1,18 +1,26 @@
 const multer = require('multer');
-const path = require('path');
 
-// Set up multer storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../uploads/'));  // Path to save uploaded files
-    },
-    filename: function (req, file, cb) {
-        // Save file with a timestamp to avoid name collisions
-        cb(null, Date.now() + path.extname(file.originalname));
+// Use memory storage instead of disk storage for ImgBB integration
+const storage = multer.memoryStorage();
+
+// File filter function to validate image types
+const fileFilter = (req, file, cb) => {
+    // Check file mimetype
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only image files are allowed!'), false);
+    }
+};
+
+// Initialize multer with memory storage configuration
+const upload = multer({ 
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 6 // Maximum 6 files for products
     }
 });
-
-// Initialize multer with storage configuration
-const upload = multer({ storage: storage });
 
 module.exports = upload;

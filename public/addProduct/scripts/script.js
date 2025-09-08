@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.message || 'Failed to add product');
             }
         } catch (error) {
-            console.error('Error:', error);
+    
             showAlert(error.message || 'Error adding product', 'error');
         } finally {
             // Reset button state
@@ -158,7 +158,7 @@ async function loadCategories() {
             showAlert('Failed to load categories', 'error');
         }
     } catch (error) {
-        console.error('Error loading categories:', error);
+
         showAlert('Error loading categories', 'error');
     }
 }
@@ -189,7 +189,7 @@ async function createProduct(formData) {
             showAlert(data.message || 'Failed to create product', 'error');
         }
     } catch (error) {
-        console.error('Error creating product:', error);
+
         showAlert('Error creating product', 'error');
     }
 }

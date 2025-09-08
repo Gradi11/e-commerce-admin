@@ -1,5 +1,6 @@
 const path = require('path');
 const Product = require('../models/Product');
+const { uploadToImgBB } = require('../config/imgbbConfig');
 
 // Create product with image handling
 exports.createProduct = async (req, res) => {
@@ -42,9 +43,30 @@ exports.createProduct = async (req, res) => {
             productData.salePrice = Number(salePrice);
         }
 
-        // Add images if uploaded
-        if (req.files && req.files.length > 0) {
-            productData.images = req.files.map(file => file.filename);
+        // Add images if uploaded - upload to ImgBB
+        if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+            const imageUploadPromises = req.files.map(async (file) => {
+                // Validate file object
+                if (!file || !file.buffer) {
+                    throw new Error(`Invalid file object for ${file?.originalname || 'unknown'}`);
+                }
+                const imgbbResult = await uploadToImgBB(file.buffer, file.originalname);
+                if (imgbbResult.success) {
+                    return imgbbResult.url; // Just return the URL
+                } else {
+                    throw new Error(`Failed to upload image ${file.originalname}: ${imgbbResult.error}`);
+                }
+            });
+
+            try {
+                const uploadedImages = await Promise.all(imageUploadPromises);
+                productData.images = uploadedImages;
+            } catch (uploadError) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to upload images: ' + uploadError.message
+                });
+            }
         }
 
         // Create new product
@@ -124,8 +146,37 @@ exports.updateProduct = async (req, res) => {
         }
 
         // Handle images if they were uploaded
-        if (req.files && req.files.length > 0) {
-            updateData.images = req.files.map(file => file.filename);
+        if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+            // Get current product to handle old image deletion
+            const currentProduct = await Product.findById(req.params.id);
+
+            // Note: We can't delete old images from ImgBB anymore since we don't store deleteUrl
+            // ImgBB will automatically clean up unused images
+
+            // Upload new images to ImgBB
+            const imageUploadPromises = req.files.map(async (file) => {
+                // Validate file object
+                if (!file || !file.buffer) {
+                    throw new Error(`Invalid file object for ${file?.originalname || 'unknown'}`);
+                }
+                
+                const imgbbResult = await uploadToImgBB(file.buffer, file.originalname);
+                if (imgbbResult.success) {
+                    return imgbbResult.url; // Just return the URL
+                } else {
+                    throw new Error(`Failed to upload image ${file.originalname}: ${imgbbResult.error}`);
+                }
+            });
+
+            try {
+                const uploadedImages = await Promise.all(imageUploadPromises);
+                updateData.images = uploadedImages;
+            } catch (uploadError) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to upload images: ' + uploadError.message
+                });
+            }
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -158,11 +209,18 @@ exports.updateProduct = async (req, res) => {
 // Delete product
 exports.deleteProduct = async (req, res) => {
     try {
-        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+        // Get product first to access image data
+        const product = await Product.findById(req.params.id);
 
-        if (!deletedProduct) {
+        if (!product) {
             return res.status(404).json({ status: 'error', message: 'Product not found' });
         }
+
+        // Note: We can't delete images from ImgBB anymore since we don't store deleteUrl
+        // ImgBB will automatically clean up unused images
+
+        // Delete the product
+        await Product.findByIdAndDelete(req.params.id);
 
         res.json({ status: 'success', message: 'Product deleted successfully' });
     } catch (error) {

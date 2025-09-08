@@ -264,7 +264,7 @@ async function updateOrderStatus(orderId, newStatus) {
       throw new Error(data.message || 'Failed to update status');
     }
   } catch (error) {
-    console.error('Error updating order status:', error);
+    
     // Revert the select value
     statusSelect.value = originalValue;
     
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filterOrders();
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      
     }
   }
 

@@ -1,6 +1,5 @@
 const Banner = require('../models/Banner');
-const fs = require('fs');
-const path = require('path');
+const { uploadToImgBB } = require('../config/imgbbConfig');
 
 // Get all banners
 exports.getBanners = async (req, res) => {
@@ -22,25 +21,42 @@ exports.getBanners = async (req, res) => {
 // Add new banner
 exports.addBanner = async (req, res) => {
   try {
-    console.log('Request body:', req.body);
-    console.log('Request file:', req.file);
+
     const { title, status } = req.body;
     
     if (!title || !req.file) {
-      console.log('Missing required fields - Title:', title, 'File:', !!req.file);
+      
       return res.status(400).json({
         success: false,
         message: 'Title and image are required'
       });
     }
 
+    // Validate file object
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file object provided'
+      });
+    }
+    
+    // Upload image to ImgBB
+    const imgbbResult = await uploadToImgBB(req.file.buffer, req.file.originalname);
+    
+    if (!imgbbResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload image: ' + imgbbResult.error
+      });
+    }
+
     const banner = new Banner({
       title,
       status: status || 'active',
-      image: req.file.filename
+      image: imgbbResult.url
     });
 
-    console.log('Saving banner:', banner);
+    
     await banner.save();
 
     res.status(201).json({
@@ -77,13 +93,21 @@ exports.updateBanner = async (req, res) => {
     };
 
     // Handle image update if new file is uploaded
-    if (req.file) {
-      // Delete old image
-      const oldImagePath = path.join(__dirname, '../public/uploads', banner.image);
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
+    if (req.file && req.file.buffer) { // Added req.file.buffer check
+      // Upload new image to ImgBB
+      const imgbbResult = await uploadToImgBB(req.file.buffer, req.file.originalname);
+
+      if (!imgbbResult.success) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload new image: ' + imgbbResult.error
+        });
       }
-      updateData.image = req.file.filename;
+
+      // Note: We can't delete image from ImgBB anymore since we don't store deleteUrl
+      // ImgBB will automatically clean up unused images
+
+      updateData.image = imgbbResult.url;
     }
 
     const updatedBanner = await Banner.findByIdAndUpdate(
@@ -117,11 +141,8 @@ exports.deleteBanner = async (req, res) => {
       });
     }
 
-    // Delete image file
-    const imagePath = path.join(__dirname, '../public/uploads', banner.image);
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
+    // Note: We can't delete image from ImgBB anymore since we don't store deleteUrl
+    // ImgBB will automatically clean up unused images
 
     await Banner.findByIdAndDelete(req.params.id);
 

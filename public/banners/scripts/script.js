@@ -31,7 +31,7 @@ async function fetchBanners() {
       renderTableView();
     }
   } catch (error) {
-    console.error('Error fetching banners:', error);
+    
     showAlert('Error loading banners', 'error');
   }
 }
@@ -50,7 +50,7 @@ function renderTableView() {
     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
       <td class="px-6 py-4 whitespace-nowrap">
         <div class="w-20 h-12">
-          <img src="/uploads/banners/${banner.image}" alt="${banner.title}" 
+          <img src="${banner.image}" alt="${banner.title}" 
                class="w-full h-full object-cover rounded">
         </div>
       </td>
@@ -152,7 +152,7 @@ async function handleFormSubmit(e) {
       throw new Error(data.message || 'Error saving banner');
     }
   } catch (error) {
-    console.error('Error saving banner:', error);
+    
     showAlert(error.message || 'Error saving banner', 'error');
   }
 }
@@ -255,7 +255,7 @@ async function confirmDeleteBanner(bannerId, buttonElement) {
       throw new Error(data.message);
     }
   } catch (error) {
-    console.error('Error deleting banner:', error);
+    
     showAlert('Error deleting banner', 'error');
     // Remove the warning dialog
     buttonElement.closest('.fixed').remove();
