@@ -16,13 +16,13 @@ const orderSchema = new mongoose.Schema({
   payment_status: {
     type: String,
     required: true,
-    enum: ['pending', 'completed', 'failed'],
+    enum: ['pending', 'completed', 'failed', 'card_payment_pending', 'payment_pending'],
     default: 'pending'
   },
   order_status: {
     type: String,
     required: true,
-    enum: ['payment_in_progress', 'order_accepted', 'order_in_progress', 'order_completed', 'order_cancelled'],
+    enum: ['payment_in_progress', 'order_accepted', 'order_in_progress', 'order_completed', 'order_cancelled', 'processed'],
     default: 'payment_in_progress'
   },
   payment_reference_code: {
