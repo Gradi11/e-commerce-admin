@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 
+
 exports.order = async (req, res) => {
     try {
       const { 
@@ -19,6 +20,24 @@ exports.order = async (req, res) => {
       if (!items || !Array.isArray(items)) return res.status(400).json({ success: false, message: 'Invalid items.' });
       if (!delivery_address || !delivery_option || !payment_status || !order_status) {
         return res.status(400).json({ success: false, message: 'All fields are required.' });
+      }
+
+      // Validate enum values
+      const validPaymentStatuses = ['pending', 'completed', 'failed', 'card_payment_pending', 'payment_pending', 'mobile_money_pending'];
+      const validOrderStatuses = ['payment_in_progress', 'order_accepted', 'order_in_progress', 'order_completed', 'order_cancelled', 'processed'];
+      
+      if (!validPaymentStatuses.includes(payment_status)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Invalid payment_status. Must be one of: ${validPaymentStatuses.join(', ')}` 
+        });
+      }
+      
+      if (!validOrderStatuses.includes(order_status)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Invalid order_status. Must be one of: ${validOrderStatuses.join(', ')}` 
+        });
       }
 
       // Calculate amounts if not provided
@@ -587,11 +606,3 @@ exports.createOrderWithAmounts = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
-
-  
